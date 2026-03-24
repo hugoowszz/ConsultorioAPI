@@ -1,0 +1,74 @@
+package com.saude.consultorioapi;
+
+import org.springframework.stereotype.Service;
+
+import javax.net.ssl.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+
+@Service
+public class ApiService {
+
+    private final String URL = "https://apichallenges.eviltester.com";
+
+    public ApiResponse httpRequest(String urlString, String method) throws IOException {
+        disableSSLverification();
+        String entitiesURL = URL+urlString;
+
+        URL url = new URL(entitiesURL);
+
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+
+        connection.setRequestMethod(method);
+
+        int responseCode = connection.getResponseCode();
+
+        String responseMessage = connection.getResponseMessage();
+
+        BufferedReader reader = null;
+
+        if(responseCode >= 200 && responseCode < 300) {
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+        } else {
+            reader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+        }
+
+        StringBuilder response = new StringBuilder();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+
+        reader.close();
+        connection.disconnect();
+
+        return new ApiResponse(responseCode, responseMessage, response.toString());
+    }
+    private static void disableSSLverification() {
+        try {
+            TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        public X509Certificate[] getAcceptedIssuers() { return null; }
+                        public void checkClientTrusted(X509Certificate[] certs, String authType) { }
+                        public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+                    }
+            };
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            HostnameVerifier allHostsValid = (hostname, session) -> true;
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
