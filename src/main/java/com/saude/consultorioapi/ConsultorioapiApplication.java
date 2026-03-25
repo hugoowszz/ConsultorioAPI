@@ -1,12 +1,7 @@
 package com.saude.consultorioapi;
-
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import javax.net.ssl.*;
 import java.io.IOException;
-
-
 
 @SpringBootApplication
 public class ConsultorioapiApplication {
@@ -49,8 +44,18 @@ public class ConsultorioapiApplication {
         //Questão 11
         System.out.println("Questão 11:");
         obterOptions();
-
-
+        //Questão 12
+        System.out.println("Questão 12");
+        System.out.print("A: ");
+        obterTodosItens();
+        System.out.print("B: ");
+        gerarIsbnAleatorio();
+        System.out.print("C: ");
+        criarItem("book","045-2-78-553385-1",5.99,5);
+        System.out.print("D: ");
+        alterarItem("book","883-4-83-066557-7",10.53,0,1);
+        System.out.print("E: ");
+        excluirItem("517-2-50-327862-0");
 
     }
     // GET simples de todas as entidades
@@ -136,4 +141,62 @@ public class ConsultorioapiApplication {
 
         System.out.println(response);
     }
+    // Experimentos com a Simple API
+    private static void obterTodosItens() throws IOException{
+        apiService = new ApiService();
+
+        ApiResponse response = apiService.httpRequest("/simpleapi/items", "GET", null, null);
+
+        System.out.println(response);
+
+    }
+    //Gerar ISBN aleatorio
+    private static void gerarIsbnAleatorio() throws IOException{
+        apiService = new ApiService();
+
+        ApiResponse response = apiService.httpRequest("/simpleapi/randomisbn", "GET", null, null);
+
+        System.out.println(response);
+
+    }
+    //Criar item
+    private static void criarItem(String type, String isbn, double price, int numberInStock) throws IOException{
+        apiService = new ApiService();
+
+        String payload = String.format(java.util.Locale.US,"{\n" +
+                "  \"type\": \"%s\",\n" +
+                "  \"isbn13\": \"%s\",\n" +
+                "  \"price\": %.2f,\n" +
+                "  \"numberinstock\": %d\n" +
+                "}", type, isbn, price, numberInStock);
+
+        ApiResponse response = apiService.httpRequest("/simpleapi/items", "POST", payload, null);
+
+        System.out.println(response);
+
+    }
+    //Atualizar item
+    private static void alterarItem(String type, String isbn, double price, int numberInStock, int id) throws IOException{
+        apiService = new ApiService();
+
+        String payload = String.format(java.util.Locale.US,"{\n" +
+                "  \"type\": \"%s\",\n" +
+                "  \"isbn13\": \"%s\",\n" +
+                "  \"price\": %.2f,\n" +
+                "  \"numberinstock\": %d\n" +
+                "}", type, isbn, price, numberInStock);
+
+        ApiResponse response = apiService.httpRequest("/simpleapi/items/"+id, "PUT", payload, null);
+
+        System.out.println(response);
+    }
+    //Remover item
+    private static void excluirItem(String isbn) throws IOException{
+        apiService = new ApiService();
+
+        ApiResponse response = apiService.httpRequest("/simpleapi/items/"+isbn, "DELETE", null, null);
+
+        System.out.println(response);
+    }
+
 }

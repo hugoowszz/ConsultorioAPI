@@ -29,7 +29,7 @@ public class ApiService {
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
 
-        if(payload != null && ("Post".equals(method)) || ("PUT".equals(method))) {
+        if(payload != null && ("POST".equals(method)) || ("PUT".equals(method))) {
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", contentType != null ? contentType : "application/json;charset=utf-8");
 
@@ -39,6 +39,14 @@ public class ApiService {
                 dos.write(sendData);
                 dos.flush();
             }
+        }
+
+        StringBuilder response = new StringBuilder();
+
+        String allowedMethods = connection.getHeaderField("Allow");
+
+        if("OPTIONS".equals(method)) {
+            response.append("Métodos Permitidos: " + allowedMethods);
         }
 
         int responseCode = connection.getResponseCode();
@@ -52,8 +60,6 @@ public class ApiService {
         } else {
             reader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
         }
-
-        StringBuilder response = new StringBuilder();
 
         String line;
         while ((line = reader.readLine()) != null) {
